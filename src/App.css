@@ -1,0 +1,12 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  /* padding: 2rem; -- Removed, was likely causing height issues */
+  /* text-align: center; -- Removed, can interfere with block layouts */
+}
+
+/* 
+  The rest of the default Vite styles (logo, card, read-the-docs, etc.)
+  are typically not needed when building a custom UI with Tailwind CSS.
+  They are removed to prevent any unintended style conflicts.
+*/
