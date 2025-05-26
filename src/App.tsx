@@ -37,20 +37,26 @@ const App = () => {
             <AuthProvider>
               <Toaster />
               <Sonner />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/chat" element={<Chat />} />
-                <Route path="/chat/:sessionId" element={<Chat />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/schedule" element={<SchedulePage />} />
-                <Route path="/recommendations" element={<RecommendationsPage />} />
-                <Route path="/files" element={<FilesPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              {showBottomNav && <BottomNav />}
+              {/* This div ensures the main content area and BottomNav correctly share vertical space */}
+              <div className="h-full flex flex-col">
+                {/* Removed px-4 sm:px-6 lg:px-8 from here */}
+                <main className="flex-1 overflow-y-auto">
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/chat" element={<Chat />} />
+                    <Route path="/chat/:sessionId" element={<Chat />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/schedule" element={<SchedulePage />} />
+                    <Route path="/recommendations" element={<RecommendationsPage />} />
+                    <Route path="/files" element={<FilesPage />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </main>
+                {showBottomNav && <BottomNav />}
+              </div>
             </AuthProvider>
           </TooltipProvider>
         </ThemeProvider>

@@ -92,9 +92,9 @@ const Chat = () => {
 
   if (authLoading) {
     return (
-      <div className="h-full flex flex-col bg-background"> {/* Changed min-h-screen to h-full */}
+      <div className="h-full flex flex-col bg-background">
         <Navbar />
-        <main className="flex-1 flex items-center justify-center p-4 pt-24"> {/* pt-24 might be too much if Navbar is h-16 (4rem) and this main has pt-16 already from parent */}
+        <main className="flex-1 flex items-center justify-center p-4 pt-24">
           <div className="animate-pulse-soft">Loading...</div>
         </main>
       </div>
@@ -102,16 +102,15 @@ const Chat = () => {
   }
 
   return (
-    // Changed min-h-screen to h-full
     <div className="h-full flex flex-col bg-background">
-      <Navbar /> {/* Fixed, h-16 */}
+      <Navbar />
       
-      {/* This container is a flex child (flex-1) and also a flex container (flex-col) */}
-      {/* It needs to account for the fixed Navbar above it. pt-16 does this. */}
-      <div className="flex-1 pt-16 flex flex-col"> {/* This should correctly take up space below Navbar */}
+      {/* Added px-4 sm:px-6 lg:px-8 here for lateral margins specific to the chat page */}
+      <div className="flex-1 pt-16 flex flex-col px-4 sm:px-6 lg:px-8">
         
         {/* Chat Page Header: sticky relative to viewport, offset by Navbar height */}
-        <div className="p-4 border-b flex items-center justify-between sticky top-16 bg-background z-20">
+        {/* Removed p-4 from here as parent now has padding. Adjusted to py-4 to keep vertical padding. */}
+        <div className="py-4 border-b flex items-center justify-between sticky top-16 bg-background z-20">
             <div className="flex items-center">
                 <Button
                     variant="ghost"
@@ -128,8 +127,6 @@ const Chat = () => {
             </div>
         </div>
         
-        {/* Chat Interface Wrapper: flex-1 makes it take remaining space in its parent */}
-        {/* overflow-hidden is good for containing content and for performance with scrolling children */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <ChatInterface
             sessionId={paramSessionId}

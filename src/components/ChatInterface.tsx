@@ -28,7 +28,7 @@ export const ChatInterface = ({ sessionId: propSessionId, newChatTrigger, resetT
   const [inputValue, setInputValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null); // Ref for the scrollable message container
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
@@ -44,11 +44,12 @@ export const ChatInterface = ({ sessionId: propSessionId, newChatTrigger, resetT
   useEffect(() => {
     if (messagesContainerRef.current) {
         const { scrollHeight, clientHeight, scrollTop } = messagesContainerRef.current;
-        const isScrolledToBottom = scrollHeight - clientHeight <= scrollTop + 20; // 20px buffer
+        // Auto-scroll if user is near the bottom or if it's their own new message
+        const isScrolledToBottom = scrollHeight - clientHeight <= scrollTop + 50; // 50px buffer for smoother experience
 
         if (messages.length > 0 && (isScrolledToBottom || messages[messages.length-1]?.type === 'human')) {
              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        } else if (messages.length === 0) {
+        } else if (messages.length === 0) { // Scroll to bottom for empty chat (e.g. after reset)
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
     }
@@ -75,10 +76,7 @@ export const ChatInterface = ({ sessionId: propSessionId, newChatTrigger, resetT
       fetchMessages(propSessionId);
       setInputValue('');
     } else if (!propSessionId && (!newChatTrigger || newChatTrigger === 0) && (!resetTrigger || resetTrigger === 0)) {
-      // Navigating to /chat directly, not via button triggers
-      // useChat hook should handle initializing for a new session.
-      // If not, one might call createNewChat() here.
-      setInputValue(''); // Ensure input is clear for a new chat page
+      setInputValue('');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propSessionId]);
@@ -98,7 +96,7 @@ export const ChatInterface = ({ sessionId: propSessionId, newChatTrigger, resetT
     setInputValue('');
     if (textareaRef.current) {
       textareaRef.current.focus();
-      textareaRef.current.style.height = 'auto'; // Reset height
+      textareaRef.current.style.height = 'auto';
     }
   };
 
@@ -168,16 +166,21 @@ export const ChatInterface = ({ sessionId: propSessionId, newChatTrigger, resetT
       textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
     };
     textarea.addEventListener('input', adjustHeight);
-    adjustHeight();
+    adjustHeight(); // Initial adjustment
     return () => textarea.removeEventListener('input', adjustHeight);
-  }, [inputValue]);
+  }, [inputValue]); // Re-run when inputValue changes for initial height setting on new messages
 
   const showWelcomeMessage = !propSessionId && messages.length === 0 && !loading;
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    // Main container: flex column, full height, background, and overflow hidden to clip its own content if necessary
+    <div className="flex flex-col h-full bg-background overflow-hidden">
       
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto pb-4 px-2 md:px-4">
+      {/* Message Area: flex-1 to take available space, scrollable, styled as a box */}
+      <div 
+        ref={messagesContainerRef} 
+        className="flex-1 overflow-y-auto p-4 bg-muted/20 rounded-lg mb-3" // Using bg-muted/20 for a subtle box on dark bg, added mb-3
+      >
         {showWelcomeMessage && (
           <div className="h-full flex flex-col items-center justify-center p-8 text-center">
             <h2 className="text-2xl font-bold mb-2">Start Chatting with Kal</h2>
@@ -188,7 +191,8 @@ export const ChatInterface = ({ sessionId: propSessionId, newChatTrigger, resetT
             </p>
           </div>
         )}
-        <div className="flex flex-col space-y-2 pt-4">
+        {/* Removed pt-4 from here, padding is now on the parent message box */}
+        <div className="flex flex-col space-y-2"> 
           {messages.map((message: ChatMessage, index: number) => (
             <ChatMessageComponent
               key={message.id || index}
@@ -197,6 +201,20 @@ export const ChatInterface = ({ sessionId: propSessionId, newChatTrigger, resetT
             />
           ))}
           {loading && messages.length > 0 && messages[messages.length - 1]?.type === 'human' && (
+            <div className="py-3 px-4 sm:px-0 animate-fade-in"> {/* Keep px for consistency if needed, or rely on parent padding */}
+              <div className="flex items-start space-x-3">
+                <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
+                <div className="flex-1 space-y-2 mt-1">
+                  <Skeleton className="h-4 w-24" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-11/12" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+           {loading && messages.length === 0 && ( // Skeleton for initial load
             <div className="py-3 px-4 sm:px-0 animate-fade-in">
               <div className="flex items-start space-x-3">
                 <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
@@ -210,25 +228,12 @@ export const ChatInterface = ({ sessionId: propSessionId, newChatTrigger, resetT
               </div>
             </div>
           )}
-           {loading && messages.length === 0 && (
-            <div className="py-3 px-4 sm:px-0 animate-fade-in">
-              <div className="flex items-start space-x-3">
-                <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
-                <div className="flex-1 space-y-2 mt-1">
-                  <Skeleton className="h-4 w-24" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-11/12" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} style={{ height: '1px' }} />
+          <div ref={messagesEndRef} style={{ height: '1px' }} /> {/* For scrolling to bottom */}
         </div>
       </div>
 
-      <Card className="border-t rounded-none mt-auto bg-background">
+      {/* Input Area: Sits at the bottom of the flex column */}
+      <Card className="border-t rounded-none bg-background"> {/* Removed mt-auto, relies on flex layout */}
         <form onSubmit={handleSubmit} className="p-3 flex items-end gap-2">
           <TooltipProvider delayDuration={200}>
             <Tooltip>
